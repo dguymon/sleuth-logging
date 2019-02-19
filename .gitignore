@@ -1,0 +1,7 @@
+*/target/**
+/target/
+*/WebContent/**
+/WebContent/
+.settings
+.project
+.classpath
