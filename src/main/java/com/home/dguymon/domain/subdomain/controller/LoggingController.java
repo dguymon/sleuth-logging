@@ -2,25 +2,24 @@ package com.home.dguymon.domain.subdomain.controller;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 
 @RestController
 @RequestMapping("/logs")
 public class LoggingController {
-
-  //private final Tracer tracer;
+  
+  @Autowired
+  RestTemplate restTemplate;
   
   private static final Logger logger = LogManager.getLogger(LoggingController.class);
-
-  //LoggingController(Tracer tracer) {
-  //  
-  // this.tracer = tracer;
-  //}
   
   /**
    * Generates sample logs.
@@ -39,5 +38,16 @@ public class LoggingController {
     logger.error("Sample ERROR log");
 
     return new ResponseEntity<>("Hello", HttpStatus.OK);
+  }
+  
+  @RequestMapping(value = "/propagate", method = RequestMethod.GET)
+  public ResponseEntity<String> propagateSleuth() {
+    
+    logger.debug("Propagate sleuth");
+        
+    String responseString = 
+        restTemplate.getForObject("http://localhost:8089/downstream/logs/sample", String.class);
+    
+    return new ResponseEntity<String>(responseString, HttpStatus.OK);
   }
 }
