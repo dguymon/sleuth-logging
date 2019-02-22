@@ -12,6 +12,9 @@ spring:
       probability: 1.0
   application:
     name: sleuth-logging
+  cloud:
+    client:
+      hostname: localhost
 
 server:
   port: 8084
@@ -21,9 +24,21 @@ server:
     enabled: true
 
 eureka:
+  cloud:
+    discovery:
+      enabled: false
   client:
+    registerWithEureka: true
+    fetchRegistry: true
+    healthCheck:
+      enabled: true
     serviceUrl:
-      defaultZone: http://localhost:8761
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    statusPageUrlPath: ${server.servlet.contextPath}/actuator/info
+    healthCheckUrlPath: ${server.servlet.contextPath}/actuator/health
+    nonSecurePortEnabled: true
+    securePortEnabled: false
 
 java:
   util:
@@ -37,4 +52,4 @@ logging:
   pattern:
     console: "[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] [${spring.application.name:-},%X{X-B3-TraceId},%X{X-B3-SpanId},%X{X-B3-ParentSpanId},%X{X-Span-Export}] %c{1} - %msg%n"
     file: "[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n"
-  file: logs/logfile.txt
+  file: logs/logfile.log
