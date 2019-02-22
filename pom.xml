@@ -6,6 +6,7 @@
 	<groupId>com.home.dguymon</groupId>
 	<artifactId>sleuth-logging</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
+	<packaging>war</packaging>
 
 	<!-- Inherit defaults from Spring Boot -->
 	<parent>
@@ -14,12 +15,63 @@
 		<version>2.1.3.RELEASE</version>
 	</parent>
 
+	<properties>
+		<spring-cloud-release-train.version>Greenwich.RELEASE</spring-cloud-release-train.version>
+		<spring-cloud-sleuth-zipkin.version>2.1.0.RELEASE</spring-cloud-sleuth-zipkin.version>
+	</properties>
+
+	<dependencyManagement>
+	    <dependencies>
+	        <dependency>
+	            <groupId>org.springframework.cloud</groupId>
+	            <artifactId>spring-cloud-dependencies</artifactId>
+	            <version>${spring-cloud-release-train.version}</version>
+	            <type>pom</type>
+	            <scope>import</scope>
+	        </dependency>
+	    </dependencies>
+	</dependencyManagement>
+	
 	<!-- Add typical dependencies for a web application -->
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-log4j2</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.dataformat</groupId>
+			<artifactId>jackson-dataformat-yaml</artifactId>
+		</dependency>
+		<dependency>
+	        <groupId>org.springframework.cloud</groupId>
+	        <artifactId>spring-cloud-starter-sleuth</artifactId>
+	    </dependency>
+	    <dependency>
+	    	<groupId>org.springframework.cloud</groupId>
+	    	<artifactId>spring-cloud-sleuth-zipkin</artifactId>
+	    </dependency>
+	    <dependency>
+	    	<groupId>org.springframework.cloud</groupId>
+	    	<artifactId>spring-cloud-sleuth-core</artifactId>
+	    </dependency>
+	    <dependency>
+	    	<groupId>org.springframework.cloud</groupId>
+	    	<artifactId>spring-cloud-starter-zipkin</artifactId>
+	    </dependency>
 	</dependencies>
 
 	<!-- Package as an executable jar -->
