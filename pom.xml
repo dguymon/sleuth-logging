@@ -18,8 +18,6 @@
 	<properties>
 		<spring-cloud-release-train.version>Greenwich.RELEASE</spring-cloud-release-train.version>
 		<spring-cloud-sleuth-zipkin.version>2.1.0.RELEASE</spring-cloud-sleuth-zipkin.version>
-		<lombok.version>1.18.6</lombok.version>
-		<com.fasterxml.jackson.core.version>2.9.8</com.fasterxml.jackson.core.version>
 	</properties>
 
 	<dependencyManagement>
@@ -92,7 +90,6 @@
 	    <dependency>
 	    	<groupId>org.projectlombok</groupId>
 	    	<artifactId>lombok</artifactId>
-	    	<version>${lombok.version}</version>
 	    </dependency>
 	    <dependency>
 		    <groupId>software.amazon.awssdk</groupId>
@@ -101,7 +98,10 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
-			<version>${com.fasterxml.jackson.core.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-hateoas</artifactId>
 		</dependency>
 	</dependencies>
 

@@ -11,22 +11,28 @@ import lombok.Setter;
 
 import org.springframework.hateoas.ResourceSupport;
 
+/**
+ * HAL-compatible message object
+ * 
+ * @author Danazn
+ *
+ */
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@JsonDeserialize(builder = CapabilityDto.CapabilityDtoBuilder.class)
-public class CapabilityDto extends ResourceSupport {
+@JsonDeserialize(builder = MessageDto.MessageDtoBuilder.class)
+public class MessageDto extends ResourceSupport {
   
   @Getter
   @Setter
-  String name;
+  String message;
   
   @Getter
   @Setter
-  String description;
+  Boolean error;
   
   @JsonPOJOBuilder(withPrefix = "")
-  public static class CapabilityDtoBuilder {
+  public static class MessageDtoBuilder {
 
   }
 }

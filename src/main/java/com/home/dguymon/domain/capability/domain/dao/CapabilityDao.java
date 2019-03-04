@@ -1,15 +1,23 @@
 package com.home.dguymon.domain.capability.domain.dao;
 
 import com.home.dguymon.domain.capability.domain.dto.CapabilityDto;
+import com.home.dguymon.domain.capability.domain.dto.MessageDto;
+
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
-import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.AttributeAction;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValueUpdate;
+import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.DeleteItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
+import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
 
 import java.util.ArrayList;
 
@@ -21,6 +29,12 @@ import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Provides data access via DynamoDB queries into capability table.
+ * 
+ * @author Danazn
+ *
+ */
 @Slf4j
 @Component
 public class CapabilityDao {
@@ -29,6 +43,11 @@ public class CapabilityDao {
   public final String PRIMARY_KEY = "name";
   public final String DESCRIPTION_KEY = "description";
   
+  /**
+   * Retrieves all capability items from capability table in DynamoDB.
+   * 
+   * @return ArrayList of CapabilityDtos from capability table.
+   */
   public ArrayList<CapabilityDto> getAllCapabilities() {
     
     ArrayList<CapabilityDto> capabilities = new ArrayList<CapabilityDto>();
@@ -50,6 +69,12 @@ public class CapabilityDao {
     return capabilities;
   }
   
+  /**
+   * Retreives a capability item by name from the capability table in DynamoDB.
+   * 
+   * @param name Primary key to search for.
+   * @return CapabilityDto matching the capability with the same primary key.
+   */
   public CapabilityDto getCapabilityByName(String name) {
     
     HashMap<String, AttributeValue> keyToGet = 
@@ -84,6 +109,7 @@ public class CapabilityDao {
         } 
       } else {
         log.warn("No item found with the provided primary name key");
+        return null;
       }
     } catch (DynamoDbException e) {
       log.error(e.getMessage());
@@ -93,15 +119,70 @@ public class CapabilityDao {
     return capabilityDto;
   }
   
-  public String updateCapability(CapabilityDto capabilityDto) {
+  /**
+   * Updates an existing capability in the capability table in DynamoDB.
+   * 
+   * @param capabilityDto Updated capability info.
+   * @return MessageDto indicating status of update operation.
+   */
+  public MessageDto updateCapability(CapabilityDto capabilityDto) {
     
-    return "success";
+    HashMap<String, AttributeValue> itemToUpdate = 
+        new HashMap<String, AttributeValue>();
+    
+    MessageDto messageDto = new MessageDto();
+    
+    itemToUpdate.put(PRIMARY_KEY, AttributeValue.builder()
+        .s(capabilityDto.getName())
+        .build());
+    
+    HashMap<String, AttributeValueUpdate> attributesToUpdate = 
+        new HashMap<String, AttributeValueUpdate>();
+    
+    attributesToUpdate.put(DESCRIPTION_KEY, AttributeValueUpdate.builder()
+        .value(AttributeValue.builder().s(capabilityDto.getDescription()).build())
+        .action(AttributeAction.PUT)
+        .build());
+    
+    UpdateItemRequest updateItemRequest = UpdateItemRequest.builder()
+        .tableName(TABLE)
+        .key(itemToUpdate)
+        .attributeUpdates(attributesToUpdate)
+        .build();
+    
+    DynamoDbClient ddb = DynamoDbClient.create();
+    
+    try {
+      ddb.updateItem(updateItemRequest);
+    } catch (ResourceNotFoundException e) {
+      log.error("Item not found in table \"%s\"", TABLE);
+      messageDto.setMessage("Failed to find item to update in table " + TABLE);
+      messageDto.setError(true);
+      return messageDto;
+    } catch (DynamoDbException e) {
+      log.error(e.getMessage());
+      messageDto.setMessage("Failed to update item in table " + TABLE);
+      messageDto.setError(true);
+      return messageDto;
+    }
+    
+    messageDto.setMessage("Item successfully added to table " + TABLE + ".");
+    messageDto.setError(false);
+    return messageDto;
   }
   
-  public String createCapability(CapabilityDto capabilityDto) {
+  /**
+   * Creates a new capability item in the capability table of DynamoDB.
+   * 
+   * @param capabilityDto The capability to create.
+   * @return MessageDto indicating status of creation attempt.
+   */
+  public MessageDto createCapability(CapabilityDto capabilityDto) {
     
     HashMap<String, AttributeValue> itemToInsert = 
         new HashMap<String, AttributeValue>();
+    
+    MessageDto messageDto = new MessageDto();
     
     itemToInsert.put(PRIMARY_KEY, AttributeValue.builder()
         .s(capabilityDto.getName())
@@ -121,18 +202,57 @@ public class CapabilityDao {
       ddb.putItem(request);
     } catch (ResourceNotFoundException e) {
       log.error("Table \"%s\" was not found", TABLE);
-      return "Failed to find table " + TABLE + " in DynamoDB";
+      messageDto.setMessage("Failed to find table " + TABLE + " in DynamoDB");
+      messageDto.setError(true);
+      return messageDto;
     } catch (DynamoDbException e) {
       log.error(e.getMessage());
-      return "Failed to insert capability into DynamoDB";
+      messageDto.setMessage("Failed to insert capability into DynamoDB");
+      messageDto.setError(true);
+      return messageDto;
     }
     
-    return "Item successfully inserted into table " + TABLE + ".";
+    messageDto.setMessage("Item successfully inserted into table " + TABLE + ".");
+    messageDto.setError(false);
+    return messageDto;
   }
   
-  public String deleteCapability(CapabilityDto capabilityDto) {
+  /**
+   * Deletes an existing capability item in the capability table in DynamoDB.
+   * 
+   * @param name Primary key of the item to delete in capability table.
+   * @return MessageDto indicating deletion attempt status.
+   */
+  public MessageDto deleteCapability(String name) {
     
-    return "success";
+    HashMap<String, AttributeValue> keyToDelete = 
+        new HashMap<String, AttributeValue>();
+    
+    MessageDto messageDto = new MessageDto();
+    
+    keyToDelete.put(PRIMARY_KEY, AttributeValue.builder()
+        .s(name)
+        .build());
+    
+    DeleteItemRequest deleteRequest = DeleteItemRequest.builder()
+        .tableName(TABLE)
+        .key(keyToDelete)
+        .build();
+    
+    DynamoDbAsyncClient ddb = DynamoDbAsyncClient.create();
+    
+    try {
+      ddb.deleteItem(deleteRequest);
+    } catch (DynamoDbException e) {
+      log.error(e.getMessage());
+      messageDto.setMessage("Unable to delete item from table " + TABLE);
+      messageDto.setError(true);
+      return messageDto;
+    }
+    
+    messageDto.setMessage("Item successfully deleted from table " + TABLE + ".");
+    messageDto.setError(false);
+    return messageDto;
   }
   
 }
