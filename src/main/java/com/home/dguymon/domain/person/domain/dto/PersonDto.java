@@ -1,4 +1,4 @@
-package com.home.dguymon.domain.capability.domain.dto;
+package com.home.dguymon.domain.person.domain.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,10 +7,11 @@ import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
-public class CapabilityDto {
+@AllArgsConstructor
+public class PersonDto {
   
-  String name;
-  String description;
+  Long id;
+  String firstName;
+  String lastName;
 }

@@ -11,7 +11,6 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeAction;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValueUpdate;
 import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
-import software.amazon.awssdk.services.dynamodb.model.DeleteItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
@@ -20,8 +19,8 @@ import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
 
 import java.util.ArrayList;
-
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -39,31 +38,32 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class CapabilityDao {
   
-  public final String TABLE = "capability";
-  public final String PRIMARY_KEY = "name";
-  public final String DESCRIPTION_KEY = "description";
+  public static final String TABLE = "capability";
+  public static final String PRIMARY_KEY = "name";
+  public static final String DESCRIPTION_KEY = "description";
   
   /**
    * Retrieves all capability items from capability table in DynamoDB.
    * 
    * @return ArrayList of CapabilityDtos from capability table.
    */
-  public ArrayList<CapabilityDto> getAllCapabilities() {
+  public List<CapabilityDto> getAllCapabilities() {
     
-    ArrayList<CapabilityDto> capabilities = new ArrayList<CapabilityDto>();
+    List<CapabilityDto> capabilities = new ArrayList<>();
     
-    DynamoDbClient ddb = DynamoDbClient.create();
-    ScanRequest scanRequest = ScanRequest.builder()
-        .tableName(TABLE)
-        .build();
-    
-    ScanResponse response = ddb.scan(scanRequest);
-    for (Map<String, AttributeValue> item : response.items()) {
-      CapabilityDto capability = new CapabilityDto();
-      capability.setName(item.get(PRIMARY_KEY).s());
-      capability.setDescription(item.get(DESCRIPTION_KEY).s());
+    try (DynamoDbClient ddb = DynamoDbClient.create()) {
+      ScanRequest scanRequest = ScanRequest.builder()
+          .tableName(TABLE)
+          .build();
       
-      capabilities.add(capability);
+      ScanResponse response = ddb.scan(scanRequest);
+      for (Map<String, AttributeValue> item : response.items()) {
+        CapabilityDto capability = new CapabilityDto();
+        capability.setName(item.get(PRIMARY_KEY).s());
+        capability.setDescription(item.get(DESCRIPTION_KEY).s());
+        
+        capabilities.add(capability);
+      }
     }
     
     return capabilities;
@@ -78,7 +78,9 @@ public class CapabilityDao {
   public CapabilityDto getCapabilityByName(String name) {
     
     HashMap<String, AttributeValue> keyToGet = 
-        new HashMap<String, AttributeValue>();
+        new HashMap<>();
+    
+    CapabilityDto capabilityDto = new CapabilityDto();
     
     keyToGet.put(PRIMARY_KEY, AttributeValue.builder()
         .s(name).build());
@@ -89,32 +91,32 @@ public class CapabilityDao {
         .tableName(TABLE)
         .build();
     
-    DynamoDbClient ddb = DynamoDbClient.create();
-    CapabilityDto capabilityDto = new CapabilityDto();
-
-    try {
-      Map<String, AttributeValue> returnedItem = 
-          ddb.getItem(request).item();
-      
-      if (returnedItem != null) {
-        Set<String> keys = returnedItem.keySet();
-        for (String key : keys) {
-          if (key.equals("name")) {
-            capabilityDto.setName(returnedItem.get(key).s());
-          } else if (key.equals("description")) {
-            capabilityDto.setDescription(returnedItem.get(key).s());
-          } else {
-            log.warn("Unanticipated column");
-          }
-        } 
-      } else {
-        log.warn("No item found with the provided primary name key");
+    
+    try (DynamoDbClient ddb = DynamoDbClient.create()) {  
+      try {
+        Map<String, AttributeValue> returnedItem = 
+            ddb.getItem(request).item();
+        
+        if (returnedItem != null) {
+          Set<String> keys = returnedItem.keySet();
+          for (String key : keys) {
+            if (key.equals(PRIMARY_KEY)) {
+              capabilityDto.setName(returnedItem.get(key).s());
+            } else if (key.equals(DESCRIPTION_KEY)) {
+              capabilityDto.setDescription(returnedItem.get(key).s());
+            } else {
+              log.warn("Unanticipated column");
+            }
+          } 
+        } else {
+          log.warn("No item found with the provided primary name key");
+          return null;
+        }
+      } catch (DynamoDbException e) {
+        log.error(e.getMessage());
         return null;
       }
-    } catch (DynamoDbException e) {
-      log.error(e.getMessage());
-      return null;
-    }
+    } 
     
     return capabilityDto;
   }
@@ -128,7 +130,7 @@ public class CapabilityDao {
   public MessageDto updateCapability(CapabilityDto capabilityDto) {
     
     HashMap<String, AttributeValue> itemToUpdate = 
-        new HashMap<String, AttributeValue>();
+        new HashMap<>();
     
     MessageDto messageDto = new MessageDto();
     
@@ -137,7 +139,7 @@ public class CapabilityDao {
         .build());
     
     HashMap<String, AttributeValueUpdate> attributesToUpdate = 
-        new HashMap<String, AttributeValueUpdate>();
+        new HashMap<>();
     
     attributesToUpdate.put(DESCRIPTION_KEY, AttributeValueUpdate.builder()
         .value(AttributeValue.builder().s(capabilityDto.getDescription()).build())
@@ -150,23 +152,23 @@ public class CapabilityDao {
         .attributeUpdates(attributesToUpdate)
         .build();
     
-    DynamoDbClient ddb = DynamoDbClient.create();
-    
-    try {
-      ddb.updateItem(updateItemRequest);
-    } catch (ResourceNotFoundException e) {
-      log.error("Item not found in table \"%s\"", TABLE);
-      messageDto.setMessage("Failed to find item to update in table " + TABLE);
-      messageDto.setError(true);
-      return messageDto;
-    } catch (DynamoDbException e) {
-      log.error(e.getMessage());
-      messageDto.setMessage("Failed to update item in table " + TABLE);
-      messageDto.setError(true);
-      return messageDto;
+    try (DynamoDbClient ddb = DynamoDbClient.create()) {
+      try {
+        ddb.updateItem(updateItemRequest);
+      } catch (ResourceNotFoundException e) {
+        log.error("Item not found in table \"%s\"", TABLE);
+        messageDto.setMessage("Failed to find item to update in table " + TABLE);
+        messageDto.setError(true);
+        return messageDto;
+      } catch (DynamoDbException e) {
+        log.error(e.getMessage());
+        messageDto.setMessage("Failed to update item in table " + TABLE);
+        messageDto.setError(true);
+        return messageDto;
+      }
     }
     
-    messageDto.setMessage("Item successfully added to table " + TABLE + ".");
+    messageDto.setMessage("Item successfully updated in table " + TABLE + ".");
     messageDto.setError(false);
     return messageDto;
   }
@@ -180,7 +182,7 @@ public class CapabilityDao {
   public MessageDto createCapability(CapabilityDto capabilityDto) {
     
     HashMap<String, AttributeValue> itemToInsert = 
-        new HashMap<String, AttributeValue>();
+        new HashMap<>();
     
     MessageDto messageDto = new MessageDto();
     
@@ -192,24 +194,25 @@ public class CapabilityDao {
         .s(capabilityDto.getDescription())
         .build());
     
-    DynamoDbClient ddb = DynamoDbClient.create();
-    PutItemRequest request = PutItemRequest.builder()
-        .tableName(TABLE)
-        .item(itemToInsert)
-        .build();
-    
-    try {
-      ddb.putItem(request);
-    } catch (ResourceNotFoundException e) {
-      log.error("Table \"%s\" was not found", TABLE);
-      messageDto.setMessage("Failed to find table " + TABLE + " in DynamoDB");
-      messageDto.setError(true);
-      return messageDto;
-    } catch (DynamoDbException e) {
-      log.error(e.getMessage());
-      messageDto.setMessage("Failed to insert capability into DynamoDB");
-      messageDto.setError(true);
-      return messageDto;
+    try (DynamoDbClient ddb = DynamoDbClient.create()) {
+      PutItemRequest request = PutItemRequest.builder()
+          .tableName(TABLE)
+          .item(itemToInsert)
+          .build();
+      
+      try {
+        ddb.putItem(request);
+      } catch (ResourceNotFoundException e) {
+        log.error("Table \"%s\" was not found", TABLE);
+        messageDto.setMessage("Failed to find table " + TABLE + " in DynamoDB");
+        messageDto.setError(true);
+        return messageDto;
+      } catch (DynamoDbException e) {
+        log.error(e.getMessage());
+        messageDto.setMessage("Failed to insert capability into DynamoDB");
+        messageDto.setError(true);
+        return messageDto;
+      }
     }
     
     messageDto.setMessage("Item successfully inserted into table " + TABLE + ".");
@@ -226,7 +229,7 @@ public class CapabilityDao {
   public MessageDto deleteCapability(String name) {
     
     HashMap<String, AttributeValue> keyToDelete = 
-        new HashMap<String, AttributeValue>();
+        new HashMap<>();
     
     MessageDto messageDto = new MessageDto();
     
@@ -239,15 +242,15 @@ public class CapabilityDao {
         .key(keyToDelete)
         .build();
     
-    DynamoDbAsyncClient ddb = DynamoDbAsyncClient.create();
-    
-    try {
-      ddb.deleteItem(deleteRequest);
-    } catch (DynamoDbException e) {
-      log.error(e.getMessage());
-      messageDto.setMessage("Unable to delete item from table " + TABLE);
-      messageDto.setError(true);
-      return messageDto;
+    try (DynamoDbAsyncClient ddb = DynamoDbAsyncClient.create()) {
+      try {
+        ddb.deleteItem(deleteRequest);
+      } catch (DynamoDbException e) {
+        log.error(e.getMessage());
+        messageDto.setMessage("Unable to delete item from table " + TABLE);
+        messageDto.setError(true);
+        return messageDto;
+      }
     }
     
     messageDto.setMessage("Item successfully deleted from table " + TABLE + ".");
