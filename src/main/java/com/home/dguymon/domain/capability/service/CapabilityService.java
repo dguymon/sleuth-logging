@@ -47,7 +47,7 @@ public class CapabilityService {
    * 
    * @return MessageDto indicating update attempt status.
    */
-  public MessageDto updateCapability(CapabilityDto capabilityDto) {
+  public String updateCapability(CapabilityDto capabilityDto) {
         
     return this.capabilityDao.updateCapability(capabilityDto);
   }
@@ -57,7 +57,7 @@ public class CapabilityService {
    * 
    * @return MessageDto indicating creation attempt status.
    */
-  public MessageDto createCapability(CapabilityDto capabilityDto) {
+  public String createCapability(CapabilityDto capabilityDto) {
         
     return this.capabilityDao.createCapability(capabilityDto);
   }

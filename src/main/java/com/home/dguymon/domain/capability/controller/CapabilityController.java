@@ -2,6 +2,7 @@ package com.home.dguymon.domain.capability.controller;
 
 import com.home.dguymon.domain.capability.domain.dto.CapabilityDto;
 import com.home.dguymon.domain.capability.domain.dto.MessageDto;
+import com.home.dguymon.domain.capability.domain.dto.NameResponseDto;
 
 import com.home.dguymon.domain.capability.service.CapabilityService;
 
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -36,7 +38,7 @@ public class CapabilityController {
    * 
    * @return JSON array of CapabilityDtos with HAL link to self.
    */
-  @GetMapping("/capabilities")
+  @GetMapping("/${custom.api.version}/capabilities")
   public List<CapabilityDto> getAllCapabilities() {
     
     return this.capabilityService.getAllCapabilities();
@@ -48,7 +50,7 @@ public class CapabilityController {
    * @param name String primary key of the item to retrieve.
    * @return Capability with primary key that matches provided name.
    */
-  @GetMapping("/capability/{name}")
+  @GetMapping("/${custom.api.version}/capabilities/{name}")
   public CapabilityDto getCapabilityByName(@PathVariable String name) {
         
     return this.capabilityService.getCapabilityByName(name);
@@ -60,18 +62,12 @@ public class CapabilityController {
    * @param capabilityDto New capability item to add to DynamoDB.
    * @return A MessageDto indicating success or failure of capability creation.
    */
-  @PostMapping("/capability")
-  public MessageDto createCapability(@RequestBody CapabilityDto capabilityDto) {
+  @PostMapping("/${custom.api.version}/capabilities")
+  public NameResponseDto createCapability(@RequestBody CapabilityDto capabilityDto) {
     
-    MessageDto messageDto = this.capabilityService.createCapability(capabilityDto);
+    String createdCapabilityName = this.capabilityService.createCapability(capabilityDto);
     
-    if (messageDto == null) {
-      messageDto = new MessageDto();
-      messageDto.setMessage(DYNAMO_DB_COMMS_ERROR_MESSAGE);
-      messageDto.setError(true);
-    }
-    
-    return messageDto;
+    return new NameResponseDto(createdCapabilityName);
   }
   
   /**
@@ -80,18 +76,12 @@ public class CapabilityController {
    * @param capabilityDto Updated capability info.
    * @return MessageDto indicating update attempt status.
    */
-  @PutMapping("/capability")
-  public MessageDto updateCapability(@RequestBody CapabilityDto capabilityDto) {
+  @PutMapping("/${custom.api.version}/capabilities/{name}")
+  public NameResponseDto updateCapability(@RequestBody CapabilityDto capabilityDto, @PathVariable String name) {
     
-    MessageDto messageDto = this.capabilityService.updateCapability(capabilityDto);
+    String updatedCapabilityName = this.capabilityService.updateCapability(capabilityDto);
     
-    if (messageDto == null) {
-      messageDto = new MessageDto();
-      messageDto.setMessage(DYNAMO_DB_COMMS_ERROR_MESSAGE);
-      messageDto.setError(true);
-    }
-    
-    return messageDto;
+    return new NameResponseDto(updatedCapabilityName);
   }
   
   /**
@@ -100,10 +90,10 @@ public class CapabilityController {
    * @param name Primary key of item to delete.
    * @return MessageDto indicating deletion attempt status.
    */
-  @DeleteMapping("/capability")
-  public MessageDto deleteCapability(@RequestBody CapabilityDto capabilityDto) {
+  @DeleteMapping("/${custom.api.version}/capabilities/{name}")
+  public MessageDto deleteCapability(@PathVariable String name) {
     
-    MessageDto messageDto = this.capabilityService.deleteCapability(capabilityDto.getName());
+    MessageDto messageDto = this.capabilityService.deleteCapability(name);
     
     if (messageDto == null) {
       messageDto = new MessageDto();

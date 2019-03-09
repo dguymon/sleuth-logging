@@ -19,7 +19,7 @@ spring:
 server:
   port: 8084
   servlet:
-    contextPath: /v1
+    contextPath: /${spring.application.name}
   compression:
     enabled: true
 
@@ -43,8 +43,8 @@ eureka:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
   instance:
-    statusPageUrlPath: ${server.servlet.contextPath}/actuator/info
-    healthCheckUrlPath: ${server.servlet.contextPath}/actuator/health
+    statusPageUrlPath: /${spring.application.name}/actuator/info
+    healthCheckUrlPath: /${spring.application.name}/actuator/health
     nonSecurePortEnabled: true
     securePortEnabled: false
 
@@ -61,3 +61,10 @@ logging:
     console: "[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] [${spring.application.name:-},%X{X-B3-TraceId},%X{X-B3-SpanId},%X{X-B3-ParentSpanId},%X{X-Span-Export}] %c{1} - %msg%n"
     file: "[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n"
   file: logs/logfile.log
+
+custom:
+  api:
+    version: v1
+  dynamodb:
+    table: capability
+  

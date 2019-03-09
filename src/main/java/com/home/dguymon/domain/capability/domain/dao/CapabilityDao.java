@@ -127,13 +127,11 @@ public class CapabilityDao {
    * @param capabilityDto Updated capability info.
    * @return MessageDto indicating status of update operation.
    */
-  public MessageDto updateCapability(CapabilityDto capabilityDto) {
+  public String updateCapability(CapabilityDto capabilityDto) {
     
     HashMap<String, AttributeValue> itemToUpdate = 
         new HashMap<>();
-    
-    MessageDto messageDto = new MessageDto();
-    
+        
     itemToUpdate.put(PRIMARY_KEY, AttributeValue.builder()
         .s(capabilityDto.getName())
         .build());
@@ -157,20 +155,14 @@ public class CapabilityDao {
         ddb.updateItem(updateItemRequest);
       } catch (ResourceNotFoundException e) {
         log.error("Item not found in table \"%s\"", TABLE);
-        messageDto.setMessage("Failed to find item to update in table " + TABLE);
-        messageDto.setError(true);
-        return messageDto;
+        return null;
       } catch (DynamoDbException e) {
         log.error(e.getMessage());
-        messageDto.setMessage("Failed to update item in table " + TABLE);
-        messageDto.setError(true);
-        return messageDto;
+        return null;
       }
     }
     
-    messageDto.setMessage("Item successfully updated in table " + TABLE + ".");
-    messageDto.setError(false);
-    return messageDto;
+    return capabilityDto.getName();
   }
   
   /**
@@ -179,13 +171,11 @@ public class CapabilityDao {
    * @param capabilityDto The capability to create.
    * @return MessageDto indicating status of creation attempt.
    */
-  public MessageDto createCapability(CapabilityDto capabilityDto) {
+  public String createCapability(CapabilityDto capabilityDto) {
     
     HashMap<String, AttributeValue> itemToInsert = 
         new HashMap<>();
-    
-    MessageDto messageDto = new MessageDto();
-    
+        
     itemToInsert.put(PRIMARY_KEY, AttributeValue.builder()
         .s(capabilityDto.getName())
         .build());
@@ -204,20 +194,14 @@ public class CapabilityDao {
         ddb.putItem(request);
       } catch (ResourceNotFoundException e) {
         log.error("Table \"%s\" was not found", TABLE);
-        messageDto.setMessage("Failed to find table " + TABLE + " in DynamoDB");
-        messageDto.setError(true);
-        return messageDto;
+        return null;
       } catch (DynamoDbException e) {
         log.error(e.getMessage());
-        messageDto.setMessage("Failed to insert capability into DynamoDB");
-        messageDto.setError(true);
-        return messageDto;
+        return null;
       }
     }
     
-    messageDto.setMessage("Item successfully inserted into table " + TABLE + ".");
-    messageDto.setError(false);
-    return messageDto;
+    return capabilityDto.getName();
   }
   
   /**
