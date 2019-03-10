@@ -16,16 +16,10 @@ spring:
     client:
       hostname: localhost
 
-custom:
-  api:
-    version: v1
-  dynamodb:
-    table: capability
-
 server:
   port: 8084
   servlet:
-    contextPath: /${spring.application.name}/${custom.api.version}
+    contextPath: /${spring.application.name}
   compression:
     enabled: true
 
@@ -67,4 +61,10 @@ logging:
     console: "[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] [${spring.application.name:-},%X{X-B3-TraceId},%X{X-B3-SpanId},%X{X-B3-ParentSpanId},%X{X-Span-Export}] %c{1} - %msg%n"
     file: "[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n"
   file: logs/logfile.log
+
+custom:
+  api:
+    version: v1
+  dynamodb:
+    table: capability
   

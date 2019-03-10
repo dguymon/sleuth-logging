@@ -9,7 +9,7 @@ import com.home.dguymon.domain.capability.service.CapabilityService;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,14 +31,14 @@ public class CapabilityController {
   public static final String DYNAMO_DB_COMMS_ERROR_MESSAGE = "Error communicating with DynamoDB.";
   
   @Autowired
-  CapabilityService capabilityService;
+  private CapabilityService capabilityService;
   
   /**
    * Retrieves all capability items from capability table in DynamoDB.
    * 
    * @return JSON array of CapabilityDtos with HAL link to self.
    */
-  @GetMapping("/${custom.api.version}/capabilities")
+  @GetMapping("/capabilities")
   public List<CapabilityDto> getAllCapabilities() {
     
     return this.capabilityService.getAllCapabilities();
@@ -50,7 +50,7 @@ public class CapabilityController {
    * @param name String primary key of the item to retrieve.
    * @return Capability with primary key that matches provided name.
    */
-  @GetMapping("/${custom.api.version}/capabilities/{name}")
+  @GetMapping("/capabilities/{name}")
   public CapabilityDto getCapabilityByName(@PathVariable String name) {
         
     return this.capabilityService.getCapabilityByName(name);
@@ -62,7 +62,7 @@ public class CapabilityController {
    * @param capabilityDto New capability item to add to DynamoDB.
    * @return A MessageDto indicating success or failure of capability creation.
    */
-  @PostMapping("/${custom.api.version}/capabilities")
+  @PostMapping("/capabilities")
   public NameResponseDto createCapability(@RequestBody CapabilityDto capabilityDto) {
     
     String createdCapabilityName = this.capabilityService.createCapability(capabilityDto);
@@ -76,7 +76,7 @@ public class CapabilityController {
    * @param capabilityDto Updated capability info.
    * @return MessageDto indicating update attempt status.
    */
-  @PutMapping("/${custom.api.version}/capabilities/{name}")
+  @PutMapping("/capabilities/{name}")
   public NameResponseDto updateCapability(@RequestBody CapabilityDto capabilityDto, @PathVariable String name) {
     
     String updatedCapabilityName = this.capabilityService.updateCapability(capabilityDto);
@@ -90,7 +90,7 @@ public class CapabilityController {
    * @param name Primary key of item to delete.
    * @return MessageDto indicating deletion attempt status.
    */
-  @DeleteMapping("/${custom.api.version}/capabilities/{name}")
+  @DeleteMapping("/capabilities/{name}")
   public MessageDto deleteCapability(@PathVariable String name) {
     
     MessageDto messageDto = this.capabilityService.deleteCapability(name);
