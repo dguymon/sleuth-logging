@@ -15,6 +15,21 @@ spring:
   cloud:
     client:
       hostname: localhost
+  datasource:
+    url: jdbc:postgresql://dguymon-postgresql.cqmym4h4jhcd.us-east-1.rds.amazonaws.com:5432/postgres
+    username: dguymon
+    password: rdsXenosaga2!
+  jpa:
+    hibernate:
+      connection:
+        provider_class: org.hibernate.hikaricp.internal.HikariCPConnectionProvider
+      hikari:
+        minimumIdle: 5
+        maximumPoolSize: 10
+        idleTimeout: 30000
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
 
 custom:
   api:
@@ -67,4 +82,4 @@ logging:
     console: "[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] [${spring.application.name:-},%X{X-B3-TraceId},%X{X-B3-SpanId},%X{X-B3-ParentSpanId},%X{X-Span-Export}] %c{1} - %msg%n"
     file: "[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n"
   file: logs/logfile.log
-  
+        

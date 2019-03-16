@@ -2,17 +2,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-
-	<groupId>com.home.dguymon</groupId>
-	<artifactId>sleuth-logging</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<packaging>war</packaging>
-
+	
 	<parent>
 		<groupId>com.home.dguymon</groupId>
 		<artifactId>sleuth-logging-parent</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
+
+    <artifactId>sleuth-logging</artifactId>
+	<packaging>jar</packaging>
 
 	<dependencyManagement>
 	    <dependencies>
@@ -26,7 +24,6 @@
 	    </dependencies>
 	</dependencyManagement>
 	
-	<!-- Add typical dependencies for a web application -->
 	<dependencies>
 		<dependency>
 			<groupId>com.home.dguymon</groupId>

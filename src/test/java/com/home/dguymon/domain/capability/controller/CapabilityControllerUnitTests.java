@@ -199,4 +199,28 @@ public class CapabilityControllerUnitTests {
     assert(result.getResponse()
         .getContentAsString()).equals(mapper.writeValueAsString(messageDto));
   }
+  
+  /**
+   * Unsuccessful unit tests for CapabilityController.deleteCapabilityByName().
+   * 
+   * @throws Exception
+   */
+  @Test
+  public void deleteCapabilityByNameUnsuccessful() throws Exception {
+    
+    String deletePrimaryKey = "travel";
+    
+    when(capabilityService.deleteCapability(deletePrimaryKey))
+      .thenReturn(null);
+    
+    MvcResult result = 
+        this.mockMvc.perform(delete("/capabilities/{name}", deletePrimaryKey)
+            .contentType(MediaType.APPLICATION_JSON_UTF8))
+      .andExpect(status().isOk())
+      .andReturn();
+    
+    assert(result.getResponse()
+        .getContentAsString()).equals(
+            mapper.writeValueAsString(messageDto));
+  }
 }
