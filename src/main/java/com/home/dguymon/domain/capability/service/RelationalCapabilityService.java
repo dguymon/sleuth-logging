@@ -8,34 +8,57 @@ import org.springframework.stereotype.Service;
 
 import com.home.dguymon.domain.capability.domain.dao.RelationalCapabilityDao;
 import com.home.dguymon.domain.capability.domain.dto.MessageDto;
-import com.home.dguymon.domain.capability.domain.dto.RelationalCapabilityDto;
+import com.home.dguymon.domain.capability.domain.dto.PersistentRelationalCapabilityDto;
 
+/**
+ * Service to provide CRUD operations against 
+ * capability table in postgres database in 
+ * PostGreSQL RDS.
+ * 
+ * @author Danazn
+ *
+ */
 @Service
 public class RelationalCapabilityService {
   
   @Autowired
   RelationalCapabilityDao relationalCapabilityDao;
   
-  public List<RelationalCapabilityDto> getAllRelationalCapabilities() {
+  /**
+   * Retrieves all capabilities from capability table in 
+   * postgres table in PostGreSQL RDS.
+   * 
+   * @return List<PersistentRelationalCapabilityDto>
+   */
+  public List<PersistentRelationalCapabilityDto> getAllRelationalCapabilities() {
     
     return this.relationalCapabilityDao.findAll();
   }
   
-  public Optional<RelationalCapabilityDto> getRelationalCapabilityById(Long id) {
+  /**
+   * Returns an Optional-wrapped capability from the capability table in 
+   * postgres database in PostGreSQL RDS.
+   * 
+   * @param id Primary key of the capability to retrieve.
+   * @return Optional<PersistentRelationalCapabilityDto> the retrieved capability.
+   */
+  public Optional<PersistentRelationalCapabilityDto> getRelationalCapabilityById(Long id) {
     
     return this.relationalCapabilityDao.findById(id);
   }
   
-  public Long updateRelationalCapability(RelationalCapabilityDto relationalCapabilityDto) {
-    this.relationalCapabilityDao.saveAndFlush(relationalCapabilityDto);
+  /**
+   * Updates or creates a capability in capability table in 
+   * postgres database in PostGreSQL RDS.
+   * 
+   * @param persistentRelationalCapabilityDto The capability data to create or 
+   * update with.
+   * @return Long the primary key id of the capability that was updated or created.
+   */
+  public Long updateOrCreateRelationalCapability(PersistentRelationalCapabilityDto persistentRelationalCapabilityDto) {
+    this.relationalCapabilityDao.saveAndFlush(persistentRelationalCapabilityDto);
     
-    return relationalCapabilityDto.getId();
-  }
-  
-  public Long createRelationalCapability(RelationalCapabilityDto relationalCapabilityDto) {
-    this.relationalCapabilityDao.saveAndFlush(relationalCapabilityDto);
-    
-    return relationalCapabilityDto.getId();
+    return persistentRelationalCapabilityDto.getId();
   }
   
   public MessageDto deleteRelationalCapabilityById(Long id) {
@@ -43,7 +66,7 @@ public class RelationalCapabilityService {
     this.relationalCapabilityDao.deleteById(id);
     this.relationalCapabilityDao.flush();
     
-    return new MessageDto("Successfully deleted item with id = " + id + "from table capability", false);
+    return new MessageDto("Successfully deleted item with id = " + id + " from table capability", false);
   }
   
 }

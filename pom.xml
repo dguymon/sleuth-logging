@@ -10,7 +10,7 @@
 	</parent>
 
     <artifactId>sleuth-logging</artifactId>
-	<packaging>jar</packaging>
+	<packaging>war</packaging>
 
 	<dependencyManagement>
 	    <dependencies>

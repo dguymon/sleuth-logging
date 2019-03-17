@@ -5,6 +5,7 @@ import com.home.dguymon.domain.capability.domain.dto.CapabilityDto;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
@@ -26,13 +27,36 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Danazn
  *
  */
-//@RunWith(SpringRunner.class)
-//@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-//@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@RunWith(SpringRunner.class)
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class CapabilityControllerIntegrationTests {
   
   @Autowired
   private TestRestTemplate testRestTemplate;
+  
+  public static final String PRIMARY_KEY = "resume";
+  
+  List<CapabilityDto> capabilityDtos = new ArrayList<>();
+  List<CapabilityDto> referenceCapabilitiesDtos = new ArrayList<>();
+  
+  CapabilityDto resumeDto = new CapabilityDto(PRIMARY_KEY,
+      "Update resume parsing capabilities");
+  
+  CapabilityDto travelDto = new CapabilityDto("travel",
+      "Travel capabilities");
+  
+  CapabilityDto uploadDto = new CapabilityDto("upload", 
+      "Update upload capability");
+  
+  @Before
+  public void setup() {
+    this.capabilityDtos.clear();
+    
+    this.capabilityDtos.add(resumeDto);
+    this.capabilityDtos.add(travelDto);
+    this.capabilityDtos.add(uploadDto);
+  }
   
   /**
    * Runs an integration test against 
@@ -40,30 +64,18 @@ public class CapabilityControllerIntegrationTests {
    * 
    * Retrieves back all the capabilities from the capability DynamoDB table.
    */
-  //@Test
+  @Test
   public void getCapabilities() {
-    List<CapabilityDto> capabilityDtos = new ArrayList<>();
     
-    CapabilityDto resumeDto = new CapabilityDto("resume",
-        "Update resume parsing capabilities");
-    
-    CapabilityDto travelDto = new CapabilityDto("travel",
-        "Travel capabilities");
-    
-    CapabilityDto uploadDto = new CapabilityDto("upload", 
-        "Update upload capability");
-    
-    capabilityDtos.add(resumeDto);
-    capabilityDtos.add(travelDto);
-    capabilityDtos.add(uploadDto);
-    
-    ResponseEntity<List<CapabilityDto>> responseCapabilityDtos = this.testRestTemplate.exchange("/v1/capabilities", 
+    ResponseEntity<List<CapabilityDto>> responseCapabilityDtos = this.testRestTemplate.exchange("/capabilities", 
         HttpMethod.GET,
         null,
         new ParameterizedTypeReference<List<CapabilityDto>>() {
         });
     
-    assertThat(responseCapabilityDtos.getBody()).isEqualTo(capabilityDtos);
+    this.referenceCapabilitiesDtos = responseCapabilityDtos.getBody();
+    
+    assertThat(this.referenceCapabilitiesDtos).isNotEmpty();
   }
   
   /**
@@ -75,15 +87,15 @@ public class CapabilityControllerIntegrationTests {
    * 
    * Verifies that the returned CapabilityDto matches the reference one.
    */
-  //@Test
+  @Test
   public void getCapabilityByName() {
     
     CapabilityDto capabilityDto = new CapabilityDto();
-    capabilityDto.setName("resume");
+    capabilityDto.setName(PRIMARY_KEY);
     capabilityDto.setDescription("Update resume parsing capabilities");
     
     CapabilityDto responseCapabilityDto = this.testRestTemplate
-        .getForObject("/v1/capabilities/" + capabilityDto.getName(), CapabilityDto.class);
+        .getForObject("/capabilities/" + capabilityDto.getName(), CapabilityDto.class);
       
     
     assertThat(responseCapabilityDto).isEqualTo(capabilityDto);
@@ -96,25 +108,23 @@ public class CapabilityControllerIntegrationTests {
    * 
    * Resets the mutate capability back to its original state
    */
-  //@Test
+  @Test
   public void updateCapability() {
     
-    final String primaryKey = "resume";
-    
     CapabilityDto originalCapabilityDto = this.testRestTemplate.getForObject(
-        "/v1/capabilities/" + primaryKey, CapabilityDto.class);
+        "/capabilities/" + PRIMARY_KEY, CapabilityDto.class);
     
     CapabilityDto toUpdateCapabilityDto = new CapabilityDto();
-    toUpdateCapabilityDto.setName("resume");
+    toUpdateCapabilityDto.setName(PRIMARY_KEY);
     toUpdateCapabilityDto.setDescription("Newly updated resume parsing capabilities");
     
-    this.testRestTemplate.put("/v1/capabilities/" + primaryKey, 
+    this.testRestTemplate.put("/capabilities/" + PRIMARY_KEY, 
         toUpdateCapabilityDto);
     
     CapabilityDto updatedCapabilityDto = this.testRestTemplate.getForObject(
-        "/v1/capabilities/" + primaryKey, CapabilityDto.class);
+        "/capabilities/" + PRIMARY_KEY, CapabilityDto.class);
     
-    this.testRestTemplate.put("/v1/capabilities/" + primaryKey, originalCapabilityDto);
+    this.testRestTemplate.put("/capabilities/" + PRIMARY_KEY, originalCapabilityDto);
     
     assertThat(updatedCapabilityDto).isEqualTo(toUpdateCapabilityDto);
   }

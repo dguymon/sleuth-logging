@@ -6,6 +6,10 @@ import com.home.dguymon.domain.capability.domain.dto.NameResponseDto;
 
 import com.home.dguymon.domain.capability.service.CapabilityService;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Danazn
  *
  */
+@Api(value = "Capability Management API with DynamoDB")
 @RestController
 public class CapabilityController {
   
@@ -38,6 +43,8 @@ public class CapabilityController {
    * 
    * @return JSON array of CapabilityDtos with HAL link to self.
    */
+  @ApiOperation(value = "Get all capabilities from DynamoDB",
+      response = List.class)
   @GetMapping("/capabilities")
   public List<CapabilityDto> getAllCapabilities() {
     
@@ -50,8 +57,13 @@ public class CapabilityController {
    * @param name String primary key of the item to retrieve.
    * @return Capability with primary key that matches provided name.
    */
+  @ApiOperation(value = "Get capability by name from DynamoDB",
+      response = CapabilityDto.class)
   @GetMapping("/capabilities/{name}")
-  public CapabilityDto getCapabilityByName(@PathVariable String name) {
+  public CapabilityDto getCapabilityByName(
+      @ApiParam(value = "Primary key name of capability to retrieve",
+                required = true) 
+      @PathVariable String name) {
         
     return this.capabilityService.getCapabilityByName(name);
   }
@@ -62,8 +74,13 @@ public class CapabilityController {
    * @param capabilityDto New capability item to add to DynamoDB.
    * @return A MessageDto indicating success or failure of capability creation.
    */
+  @ApiOperation(value = "Create new capability in DynamoDB", 
+      response = NameResponseDto.class)
   @PostMapping("/capabilities")
-  public NameResponseDto createCapability(@RequestBody CapabilityDto capabilityDto) {
+  public NameResponseDto createCapability(
+      @ApiParam(value = "Capability information to create with",
+                required = true)
+      @RequestBody CapabilityDto capabilityDto) {
     
     String createdCapabilityName = this.capabilityService.createCapability(capabilityDto);
     
@@ -76,8 +93,16 @@ public class CapabilityController {
    * @param capabilityDto Updated capability info.
    * @return MessageDto indicating update attempt status.
    */
+  @ApiOperation(value = "Update capability by name in DynamoDB",
+      response = NameResponseDto.class)
   @PutMapping("/capabilities/{name}")
-  public NameResponseDto updateCapability(@RequestBody CapabilityDto capabilityDto, @PathVariable String name) {
+  public NameResponseDto updateCapability(
+      @ApiParam(value = "Capability info to update with", 
+                required = true)
+      @RequestBody CapabilityDto capabilityDto, 
+      @ApiParam(value = "Primary key name to update", 
+                required = true)
+      @PathVariable String name) {
     
     String updatedCapabilityName = this.capabilityService.updateCapability(capabilityDto);
     
@@ -90,8 +115,13 @@ public class CapabilityController {
    * @param name Primary key of item to delete.
    * @return MessageDto indicating deletion attempt status.
    */
+  @ApiOperation(value = "Delete capability by name from DynamoDB", 
+      response = MessageDto.class)
   @DeleteMapping("/capabilities/{name}")
-  public MessageDto deleteCapability(@PathVariable String name) {
+  public MessageDto deleteCapability(
+      @ApiParam(value = "Primary key name to delete", 
+                required = true)
+      @PathVariable String name) {
     
     MessageDto messageDto = this.capabilityService.deleteCapability(name);
     
