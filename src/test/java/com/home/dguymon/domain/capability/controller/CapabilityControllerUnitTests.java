@@ -44,6 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class CapabilityControllerUnitTests {
   
   private static final String PRIMARY_KEY = "resume";
+  private static final String CREATE_AND_DELETE_PRIMARY_KEY = "travel";
   
   @Mock
   CapabilityService capabilityService;
@@ -67,6 +68,9 @@ public class CapabilityControllerUnitTests {
   
   private MessageDto messageDto = 
       new MessageDto("Capability successfully deleted from table capability", false);
+  
+  private MessageDto unsuccessfulMessageDto = 
+      new MessageDto("Error communicating with DynamoDB.", true);
   
   ObjectMapper mapper = new ObjectMapper();
   
@@ -159,13 +163,11 @@ public class CapabilityControllerUnitTests {
    */
   @Test
   public void createCapability() throws Exception {
+        
+    CapabilityDto toCreateCapabilityDto = new CapabilityDto(CREATE_AND_DELETE_PRIMARY_KEY, "Travel capabilities");
+    NameResponseDto nameResponseDto = new NameResponseDto(CREATE_AND_DELETE_PRIMARY_KEY);
     
-    String createPrimaryKey = "travel";
-    
-    CapabilityDto toCreateCapabilityDto = new CapabilityDto(createPrimaryKey, "Travel capabilities");
-    NameResponseDto nameResponseDto = new NameResponseDto(createPrimaryKey);
-    
-    when(capabilityService.createCapability(toCreateCapabilityDto)).thenReturn(createPrimaryKey);
+    when(capabilityService.createCapability(toCreateCapabilityDto)).thenReturn(CREATE_AND_DELETE_PRIMARY_KEY);
     
     MvcResult result = 
         this.mockMvc.perform(post("/capabilities")
@@ -185,13 +187,11 @@ public class CapabilityControllerUnitTests {
    */
   @Test
   public void deleteCapabilityByName() throws Exception {
-    
-    String deletePrimaryKey = "travel";
-    
-    when(capabilityService.deleteCapability(deletePrimaryKey)).thenReturn(messageDto);
+        
+    when(capabilityService.deleteCapability(CREATE_AND_DELETE_PRIMARY_KEY)).thenReturn(messageDto);
     
     MvcResult result = 
-        this.mockMvc.perform(delete("/capabilities/{name}", deletePrimaryKey)
+        this.mockMvc.perform(delete("/capabilities/{name}", CREATE_AND_DELETE_PRIMARY_KEY)
             .contentType(MediaType.APPLICATION_JSON_UTF8))
       .andExpect(status().isOk())
       .andReturn();
@@ -207,20 +207,18 @@ public class CapabilityControllerUnitTests {
    */
   @Test
   public void deleteCapabilityByNameUnsuccessful() throws Exception {
-    
-    String deletePrimaryKey = "travel";
-    
-    when(capabilityService.deleteCapability(deletePrimaryKey))
+        
+    when(capabilityService.deleteCapability(CREATE_AND_DELETE_PRIMARY_KEY))
       .thenReturn(null);
     
     MvcResult result = 
-        this.mockMvc.perform(delete("/capabilities/{name}", deletePrimaryKey)
+        this.mockMvc.perform(delete("/capabilities/{name}", CREATE_AND_DELETE_PRIMARY_KEY)
             .contentType(MediaType.APPLICATION_JSON_UTF8))
       .andExpect(status().isOk())
       .andReturn();
     
     assert(result.getResponse()
         .getContentAsString()).equals(
-            mapper.writeValueAsString(messageDto));
+            mapper.writeValueAsString(unsuccessfulMessageDto));
   }
 }

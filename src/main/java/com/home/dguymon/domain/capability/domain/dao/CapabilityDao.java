@@ -3,7 +3,8 @@ package com.home.dguymon.domain.capability.domain.dao;
 import com.home.dguymon.domain.capability.domain.dto.CapabilityDto;
 import com.home.dguymon.domain.capability.domain.dto.MessageDto;
 
-import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider;
+//import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider;
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
@@ -51,12 +52,13 @@ public class CapabilityDao {
     
     List<CapabilityDto> capabilities = new ArrayList<>();
     
-    //try (DynamoDbClient ddb = DynamoDbClient.create()) {
+    try (DynamoDbClient ddb = DynamoDbClient.create()) {
+    /*
     try (DynamoDbClient ddb = DynamoDbClient.builder()
         .credentialsProvider(
             InstanceProfileCredentialsProvider.builder()
               .build()).build()) {
-      
+    */  
       ScanRequest scanRequest = ScanRequest.builder()
           .tableName(TABLE)
           .build();
@@ -97,11 +99,13 @@ public class CapabilityDao {
         .build();
     
     
-    //try (DynamoDbClient ddb = DynamoDbClient.create()) {
+    try (DynamoDbClient ddb = DynamoDbClient.create()) {
+    /*
     try (DynamoDbClient ddb = DynamoDbClient.builder()
         .credentialsProvider(
             InstanceProfileCredentialsProvider.builder()
               .build()).build()) {
+    */
       try {
         Map<String, AttributeValue> returnedItem = 
             ddb.getItem(request).item();
@@ -159,11 +163,13 @@ public class CapabilityDao {
         .attributeUpdates(attributesToUpdate)
         .build();
     
-    //try (DynamoDbClient ddb = DynamoDbClient.create()) {
+    try (DynamoDbClient ddb = DynamoDbClient.create()) {
+    /*
     try (DynamoDbClient ddb = DynamoDbClient.builder()
         .credentialsProvider(
             InstanceProfileCredentialsProvider.builder()
               .build()).build()) {
+    */
       try {
         ddb.updateItem(updateItemRequest);
       } catch (ResourceNotFoundException e) {
@@ -197,11 +203,13 @@ public class CapabilityDao {
         .s(capabilityDto.getDescription())
         .build());
     
-    //try (DynamoDbClient ddb = DynamoDbClient.create()) {
+    try (DynamoDbClient ddb = DynamoDbClient.create()) {
+    /*
     try (DynamoDbClient ddb = DynamoDbClient.builder()
         .credentialsProvider(
             InstanceProfileCredentialsProvider.builder()
               .build()).build()) {
+    */
       PutItemRequest request = PutItemRequest.builder()
           .tableName(TABLE)
           .item(itemToInsert)
@@ -243,11 +251,13 @@ public class CapabilityDao {
         .key(keyToDelete)
         .build();
     
-    //try (DynamoDbAsyncClient ddb = DynamoDbAsyncClient.create()) {
+    try (DynamoDbAsyncClient ddb = DynamoDbAsyncClient.create()) {
+    /*
     try (DynamoDbClient ddb = DynamoDbClient.builder()
         .credentialsProvider(
             InstanceProfileCredentialsProvider.builder()
               .build()).build()) {
+    */
       try {
         ddb.deleteItem(deleteRequest);
       } catch (DynamoDbException e) {
